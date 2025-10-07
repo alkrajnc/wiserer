@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:latest
+    env_file:
+      - path: ./.env
+        required: true
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE:-wiserer}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - wiserer
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-U",
+          "${DB_USERNAME}",
+          "-d",
+          "${DB_DATABASE:-wiserer}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  wiserer:
+
+volumes:
+  db_data:
