@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Assignment struct {
 	Id        string    `json:"id" db:"id"`
@@ -11,9 +15,20 @@ type Assignment struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UserId    string    `json:"user_id" db:"user_id"`
 }
+type NewAssigment struct {
+	Title    string    `json:"title" db:"title"`
+	Deadline time.Time `json:"deadline" db:"deadline"`
+	Subject  string    `json:"subject" db:"subject"`
+	Status   string    `json:"status" db:"status"`
+	UserId   string    `json:"user_id" db:"user_id"`
+}
 
-func CreateAssignment(assigment Assignment) error {
-	err := db.Exec("INSERT INTO assignments(id, title, deadline, subject, status) VALUES($1, $2, $3, $4, $5)")
+func CreateAssignment(assigment NewAssigment) error {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+	err = db.Exec("INSERT INTO assignments(id, title, deadline, subject, status, user_id) VALUES($1, $2, $3, $4, $5, $6)", id.String(), assigment.Title, assigment.Deadline, assigment.Subject, assigment.Status, assigment.UserId)
 	if err != nil {
 		return err
 	}

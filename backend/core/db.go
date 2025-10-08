@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/jackc/pgx/v5"
@@ -25,10 +24,9 @@ var db database
 func init() {
 	var err error
 
-	db.conn, err = pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	db.conn, err = pgx.Connect(context.Background(), "postgres://wiserer:asdaoivsdfsdf@localhost:5432/wiserer")
 	if err != nil {
 		fmt.Println("Failed to connect to database")
-		os.Exit(1)
 	}
 }
 
@@ -98,6 +96,6 @@ func (rows *DBRows) Bind(dest any) error {
 }
 
 func (db *database) Exec(sql string, args ...any) error {
-	_, err := db.conn.Exec(context.Background(), sql, args)
+	_, err := db.conn.Exec(context.Background(), sql, args...)
 	return err
 }
