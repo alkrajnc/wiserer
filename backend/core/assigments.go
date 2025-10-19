@@ -45,5 +45,6 @@ func GetAssignments(userId string) (*[]Assignment, error) {
 	if err != nil {
 		return nil, err
 	}
+	println(assigments)
 	return &assigments, nil
 }

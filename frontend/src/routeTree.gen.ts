@@ -9,12 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as MainRouteRouteImport } from './routes/_main/route'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as MainAssigmentsRouteImport } from './routes/_main/assigments'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const MainRouteRoute = MainRouteRouteImport.update({
+  id: '/_main',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -22,40 +22,46 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MainAssigmentsRoute = MainAssigmentsRouteImport.update({
+  id: '/assigments',
+  path: '/assigments',
+  getParentRoute: () => MainRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/assigments': typeof MainAssigmentsRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/assigments': typeof MainAssigmentsRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_main': typeof MainRouteRouteWithChildren
+  '/_main/assigments': typeof MainAssigmentsRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/tanstack-query'
+  fullPaths: '/assigments' | '/demo/tanstack-query'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/demo/tanstack-query'
+  to: '/assigments' | '/demo/tanstack-query'
+  id: '__root__' | '/_main' | '/_main/assigments' | '/demo/tanstack-query'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  MainRouteRoute: typeof MainRouteRouteWithChildren
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/_main': {
+      id: '/_main'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof MainRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -65,11 +71,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_main/assigments': {
+      id: '/_main/assigments'
+      path: '/assigments'
+      fullPath: '/assigments'
+      preLoaderRoute: typeof MainAssigmentsRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
   }
 }
 
+interface MainRouteRouteChildren {
+  MainAssigmentsRoute: typeof MainAssigmentsRoute
+}
+
+const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainAssigmentsRoute: MainAssigmentsRoute,
+}
+
+const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
+  MainRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  MainRouteRoute: MainRouteRouteWithChildren,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 export const routeTree = rootRouteImport

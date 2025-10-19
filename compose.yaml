@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:latest
     env_file:
-      - path: ./.env
+      - path: ./backend/.env
         required: true
     environment:
       - POSTGRES_USER=${DB_USERNAME}
