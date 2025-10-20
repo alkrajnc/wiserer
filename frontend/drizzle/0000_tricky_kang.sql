@@ -2,15 +2,21 @@ CREATE TABLE "assignments" (
 	"id" text PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
 	"subject" text NOT NULL,
-	"status" text NOT NULL,
+	"status" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"deadline" timestamp NOT NULL,
-	"user_id" text NOT NULL
+	"user_id" text NOT NULL,
+	"description" text
+);
+--> statement-breakpoint
+CREATE TABLE "assigment_status" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"status" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "subjects" (
 	"name" text PRIMARY KEY NOT NULL,
-	"color" text NOT NULL
+	"carrier" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -22,4 +28,5 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 ALTER TABLE "assignments" ADD CONSTRAINT "assignments_subject_subjects_name_fk" FOREIGN KEY ("subject") REFERENCES "public"."subjects"("name") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "assignments" ADD CONSTRAINT "assignments_status_assigment_status_id_fk" FOREIGN KEY ("status") REFERENCES "public"."assigment_status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assignments" ADD CONSTRAINT "assignments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE cascade;

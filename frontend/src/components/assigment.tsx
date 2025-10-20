@@ -2,6 +2,7 @@ import { ClipboardClock, MoreHorizontal } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { stringToColor } from "@/lib/utils";
 import { Button } from "./ui/button";
+import AssigmentOptions from "./assigment-dropdown-menu";
 
 interface Assignment {
   title: string;
@@ -22,14 +23,12 @@ const Assignment: React.FC<Assignment> = ({
     <div className="border rounded-md w-full p-4 flex flex-col gap-4 bg-card">
       <div className="flex flex-row justify-between items-center">
         <Badge
-          style={{ backgroundColor: stringToColor(subject.id) }}
+          style={{ backgroundColor: stringToColor(subject.name) }}
           className="text-white font-medium"
         >
           {subject.name}
         </Badge>
-        <Button variant={"ghost"} size={"icon"}>
-          <MoreHorizontal />
-        </Button>
+        <AssigmentOptions />
       </div>
       <p className="font-semibold text-lg">{title}</p>
       <p className="text-muted-foreground">{description}</p>

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const assigmentsTable = pgTable("assignments", {
     id: text("id").notNull().primaryKey(),
@@ -8,13 +8,14 @@ export const assigmentsTable = pgTable("assignments", {
         onDelete: "cascade",
         onUpdate: "cascade",
     }),
-    status: text("status").notNull(),
+    status: integer("status").notNull().references(() => assignmentStatus.id),
     createdAt: timestamp("created_at").notNull().default(sql`now()`),
     deadline: timestamp("deadline").notNull(),
     userId: text("user_id").notNull().references(() => usersTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
     }),
+    description: text("description"),
 });
 
 export const usersTable = pgTable("users", {
@@ -27,5 +28,10 @@ export const usersTable = pgTable("users", {
 
 export const subjectsTable = pgTable("subjects", {
     name: text("name").primaryKey(),
-    color: text("color").notNull(),
+    carrier: text("carrier").notNull(),
+});
+
+export const assignmentStatus = pgTable("assigment_status", {
+    id: serial("id").primaryKey(),
+    status: text("status").notNull(),
 });

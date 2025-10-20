@@ -7,14 +7,16 @@ import (
 )
 
 type Assignment struct {
-	Id        string    `json:"id" db:"id"`
-	Title     string    `json:"title" db:"title"`
-	Deadline  time.Time `json:"deadline" db:"deadline"`
-	Subject   string    `json:"subject" db:"subject"`
-	Status    string    `json:"status" db:"status"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UserId    string    `json:"user_id" db:"user_id"`
+	Id          string    `json:"id" db:"id"`
+	Title       string    `json:"title" db:"title"`
+	Deadline    time.Time `json:"deadline" db:"deadline"`
+	Subject     string    `json:"subject" db:"subject"`
+	Status      string    `json:"status" db:"status"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UserId      string    `json:"user_id" db:"user_id"`
+	Description string    `json:"description" db:"description"`
 }
+
 type NewAssigment struct {
 	Title    string    `json:"title" db:"title"`
 	Deadline time.Time `json:"deadline" db:"deadline"`
@@ -37,7 +39,7 @@ func CreateAssignment(assigment NewAssigment) error {
 
 func GetAssignments(userId string) (*[]Assignment, error) {
 	var assigments []Assignment
-	rows, err := db.Query("SELECT * FROM assignments WHERE user_id = $1", userId)
+	rows, err := db.Query("SELECT assignments.*, subjects.carrier, assigment_status.status FROM public.assignments INNER JOIN subjects ON subjects.name = assignments.subject INNER JOIN assigment_status ON assigment_status.id = assignments.status WHERE user_id = $1", userId)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +47,5 @@ func GetAssignments(userId string) (*[]Assignment, error) {
 	if err != nil {
 		return nil, err
 	}
-	println(assigments)
 	return &assigments, nil
 }

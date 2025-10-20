@@ -27,7 +27,7 @@ function RouteComponent() {
           </SidebarItem>
         </SidebarCategory>
       </Sidebar>
-      <div className="px-16 py-6 w-full">
+      <div className="px-16 py-6 w-full overflow-auto">
         <Outlet />
       </div>
     </div>

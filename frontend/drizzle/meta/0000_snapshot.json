@@ -1,5 +1,5 @@
 {
-  "id": "91dd1e81-89f3-4df0-bbd3-f3d0b9643a08",
+  "id": "ebf8f67a-c97d-4497-ae22-0d3136397a01",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,7 +28,7 @@
         },
         "status": {
           "name": "status",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -50,6 +50,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -66,6 +72,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        },
+        "assignments_status_assigment_status_id_fk": {
+          "name": "assignments_status_assigment_status_id_fk",
+          "tableFrom": "assignments",
+          "tableTo": "assigment_status",
+          "columnsFrom": [
+            "status"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "assignments_user_id_users_id_fk": {
           "name": "assignments_user_id_users_id_fk",
@@ -87,6 +106,31 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.assigment_status": {
+      "name": "assigment_status",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.subjects": {
       "name": "subjects",
       "schema": "",
@@ -97,8 +141,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "color": {
-          "name": "color",
+        "carrier": {
+          "name": "carrier",
           "type": "text",
           "primaryKey": false,
           "notNull": true

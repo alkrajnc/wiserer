@@ -12,7 +12,7 @@ func authentication() gin.HandlerFunc {
 			c.Abort()
 			return
 		} */
-		c.Set("user_id", "0199bf31-1db0-75b4-a8c8-e2276fb25634")
+		c.Set("user_id", "7bae10a4-8993-48ca-b41d-997917898031")
 		c.Next()
 	}
 }

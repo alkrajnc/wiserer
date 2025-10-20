@@ -29,7 +29,7 @@ func listAssigments(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"error": false, "message": "Fetched assigments for user", "assignments": assignments})
+	c.JSON(http.StatusOK, gin.H{"error": false, "message": "Fetched assigments for user", "data": assignments})
 }
 
 func createAssigment(c *gin.Context) {

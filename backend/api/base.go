@@ -9,6 +9,7 @@ func NewRouter() *gin.Engine {
 	bindTimetableApi(apiRoute)
 	bindAuthApi(apiRoute)
 	bindAssigmentsApi(apiRoute)
+	bindSubjectsApi(apiRoute)
 
 	return router
 }

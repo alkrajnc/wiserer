@@ -24,7 +24,7 @@ var db database
 func init() {
 	var err error
 
-	db.conn, err = pgx.Connect(context.Background(), "postgres://wiserer:asdaoivsdfsdf@localhost:5432/wiserer")
+	db.conn, err = pgx.Connect(context.Background(), "postgres://wiserer:gesldoiohiyuvfjikpoioih@localhost:5432/wiserer")
 	if err != nil {
 		fmt.Println("Failed to connect to database")
 	}

@@ -1,6 +1,5 @@
-import { Plus } from "lucide-react";
-import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import NewAssigmentDialog from "./new-assigment-dialog";
 
 interface AssigmentsContainerProps {
   title?: string;
@@ -16,11 +15,9 @@ const AssignmentsContainer: React.FC<AssigmentsContainerProps> = ({
       <div className="p-4 border-b flex flex-row items-center justify-between">
         <div className="flex flex-row items-center gap-2 ">
           <p className="text-lg font-semibold">{title}</p>
-          <Badge variant={"secondary"}> {children?.length ?? 0}</Badge>
+          <Badge variant={"secondary"}>{children?.length ?? 0}</Badge>
         </div>
-        <Button size={"icon"} variant={"ghost"}>
-          <Plus />
-        </Button>
+        <NewAssigmentDialog />
       </div>
       <div className="p-4 space-y-4">{children}</div>
     </div>
