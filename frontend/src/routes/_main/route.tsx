@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { CalendarRange, NotebookPen, Settings } from "lucide-react";
+import { CalendarRange, House, NotebookPen, Settings } from "lucide-react";
 import Sidebar, { SidebarCategory, SidebarItem } from "@/components/sidebar";
 
 export const Route = createFileRoute("/_main")({
@@ -11,10 +11,13 @@ function RouteComponent() {
     <div className="w-screen h-screen overflow-hidden flex flex-row">
       <Sidebar>
         <SidebarCategory name="General">
-          <SidebarItem>
+          <SidebarItem href="/">
+            <House size={17} /> Home
+          </SidebarItem>
+          <SidebarItem href="/timetable">
             <CalendarRange size={17} /> Timetable
           </SidebarItem>
-          <SidebarItem>
+          <SidebarItem href="/assigments">
             <NotebookPen size={17} /> Assigments
           </SidebarItem>
         </SidebarCategory>
@@ -24,7 +27,7 @@ function RouteComponent() {
           </SidebarItem>
         </SidebarCategory>
       </Sidebar>
-      <div className="p-4">
+      <div className="px-16 py-6 w-full">
         <Outlet />
       </div>
     </div>

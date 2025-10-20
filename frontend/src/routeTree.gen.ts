@@ -10,17 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteRouteImport } from './routes/_main/route'
+import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as MainTimetableRouteImport } from './routes/_main/timetable'
 import { Route as MainAssigmentsRouteImport } from './routes/_main/assigments'
 
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/_main',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MainIndexRoute = MainIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
+} as any)
+const MainTimetableRoute = MainTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => MainRouteRoute,
 } as any)
 const MainAssigmentsRoute = MainAssigmentsRouteImport.update({
   id: '/assigments',
@@ -30,24 +42,36 @@ const MainAssigmentsRoute = MainAssigmentsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/assigments': typeof MainAssigmentsRoute
+  '/timetable': typeof MainTimetableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/': typeof MainIndexRoute
 }
 export interface FileRoutesByTo {
   '/assigments': typeof MainAssigmentsRoute
+  '/timetable': typeof MainTimetableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/': typeof MainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteRouteWithChildren
   '/_main/assigments': typeof MainAssigmentsRoute
+  '/_main/timetable': typeof MainTimetableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_main/': typeof MainIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/assigments' | '/demo/tanstack-query'
+  fullPaths: '/assigments' | '/timetable' | '/demo/tanstack-query' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/assigments' | '/demo/tanstack-query'
-  id: '__root__' | '/_main' | '/_main/assigments' | '/demo/tanstack-query'
+  to: '/assigments' | '/timetable' | '/demo/tanstack-query' | '/'
+  id:
+    | '__root__'
+    | '/_main'
+    | '/_main/assigments'
+    | '/_main/timetable'
+    | '/demo/tanstack-query'
+    | '/_main/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -64,12 +88,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_main/': {
+      id: '/_main/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
       fullPath: '/demo/tanstack-query'
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_main/timetable': {
+      id: '/_main/timetable'
+      path: '/timetable'
+      fullPath: '/timetable'
+      preLoaderRoute: typeof MainTimetableRouteImport
+      parentRoute: typeof MainRouteRoute
     }
     '/_main/assigments': {
       id: '/_main/assigments'
@@ -83,10 +121,14 @@ declare module '@tanstack/react-router' {
 
 interface MainRouteRouteChildren {
   MainAssigmentsRoute: typeof MainAssigmentsRoute
+  MainTimetableRoute: typeof MainTimetableRoute
+  MainIndexRoute: typeof MainIndexRoute
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainAssigmentsRoute: MainAssigmentsRoute,
+  MainTimetableRoute: MainTimetableRoute,
+  MainIndexRoute: MainIndexRoute,
 }
 
 const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
