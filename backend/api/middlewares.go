@@ -12,7 +12,8 @@ func authentication() gin.HandlerFunc {
 			c.Abort()
 			return
 		} */
-		c.Set("user_id", "7bae10a4-8993-48ca-b41d-997917898031")
+		userId := c.Request.Header.Get("X-User")
+		c.Set("user_id", userId)
 		c.Next()
 	}
 }

@@ -16,17 +16,22 @@ interface Assigment {
   description?: string;
 }
 
-export const fetchAssigments = async () => {
+export const fetchAssigments = async (userId: string) => {
   return axios
     .get<ApiResponse<Array<Assigment>>>(
       `${import.meta.env.VITE_API_URL}/api/assigments`,
+      {
+        headers: {
+          "X-User": userId,
+        },
+      }
     )
     .then((r) => r.data);
 };
 
 export const assigmentsQueryOptions = queryOptions({
   queryKey: ["assigments"],
-  queryFn: () => fetchAssigments(),
+  queryFn: () => fetchAssigments("019a0217-6811-78a1-8780-365a7d9e158e"),
 });
 
 export const Route = createFileRoute("/_main/assigments")({
@@ -51,55 +56,58 @@ function RouteComponent() {
       </div>
       <div className="grid grid-cols-3 gap-16">
         <AssignmentsContainer title={"To Do"}>
-          {assigments.filter((val) => val.status === "To Do").map((
-            assigment,
-          ) => (
-            <Assignment
-              key={assigment.id}
-              title={assigment.title}
-              description={assigment.description}
-              createdAt={new Date(assigment.createdAt)}
-              deadline={new Date(assigment.deadline)}
-              subject={{
-                subjectCarrier: "",
-                name: assigment.subject,
-              }}
-            />
-          ))}
+          {assigments &&
+            assigments
+              .filter((val) => val.status === "To Do")
+              .map((assigment) => (
+                <Assignment
+                  key={assigment.id}
+                  title={assigment.title}
+                  description={assigment.description}
+                  createdAt={new Date(assigment.createdAt)}
+                  deadline={new Date(assigment.deadline)}
+                  subject={{
+                    subjectCarrier: "",
+                    name: assigment.subject,
+                  }}
+                />
+              ))}
         </AssignmentsContainer>
         <AssignmentsContainer title={"In Progress"}>
-          {assigments.filter((val) => val.status === "In Progress").map((
-            assigment,
-          ) => (
-            <Assignment
-              key={assigment.id}
-              title={assigment.title}
-              description={assigment.description}
-              createdAt={new Date(assigment.createdAt)}
-              deadline={new Date(assigment.deadline)}
-              subject={{
-                subjectCarrier: "",
-                name: assigment.subject,
-              }}
-            />
-          ))}
+          {assigments &&
+            assigments
+              .filter((val) => val.status === "In Progress")
+              .map((assigment) => (
+                <Assignment
+                  key={assigment.id}
+                  title={assigment.title}
+                  description={assigment.description}
+                  createdAt={new Date(assigment.createdAt)}
+                  deadline={new Date(assigment.deadline)}
+                  subject={{
+                    subjectCarrier: "",
+                    name: assigment.subject,
+                  }}
+                />
+              ))}
         </AssignmentsContainer>
         <AssignmentsContainer title={"Finished"}>
-          {assigments.filter((val) => val.status === "Finished").map((
-            assigment,
-          ) => (
-            <Assignment
-              key={assigment.id}
-              title={assigment.title}
-              description={assigment.description}
-              createdAt={new Date(assigment.createdAt)}
-              deadline={new Date(assigment.deadline)}
-              subject={{
-                subjectCarrier: "",
-                name: assigment.subject,
-              }}
-            />
-          ))}
+          {assigments &&
+            assigments
+              .filter((val) => val.status === "Finished")
+              .map((assigment) => (
+                <Assignment
+                  key={assigment.id}
+                  title={assigment.title}
+                  description={assigment.description}
+                  createdAt={new Date(assigment.createdAt)}
+                  deadline={new Date(assigment.deadline)}
+                  subject={{
+                    subjectCarrier: "",
+                    name: assigment.subject,
+                  }}
+                />
+              ))}
         </AssignmentsContainer>
       </div>
     </div>
