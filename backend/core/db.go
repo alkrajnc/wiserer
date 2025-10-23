@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/jackc/pgx/v5"
@@ -21,16 +22,23 @@ type DBRow struct {
 
 var db database
 
-func init() {
+func DBInit() {
 	var err error
-
-	db.conn, err = pgx.Connect(context.Background(), "postgres://wiserer:asdaoivsdfsdf@localhost:5432/wiserer")
+	connectionUrl := os.Getenv("DATABASE_URL")
+	if connectionUrl == "" {
+		fmt.Println("ENV DATABASE_URL is null")
+		os.Exit(0)
+	}
+	db.conn, err = pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Println("Failed to connect to database")
 	}
 }
 
 func (db *database) Query(sql string, args ...any) (*DBRows, error) {
+	if db.conn == nil {
+		return nil, fmt.Errorf("conn is nil")
+	}
 	rows, err := db.conn.Query(context.Background(), sql, args...)
 	if err != nil {
 		println(err.Error())

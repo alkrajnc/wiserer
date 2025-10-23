@@ -24,14 +24,14 @@ export const fetchAssigments = async (userId: string) => {
         headers: {
           "X-User": userId,
         },
-      }
+      },
     )
     .then((r) => r.data);
 };
 
 export const assigmentsQueryOptions = queryOptions({
   queryKey: ["assigments"],
-  queryFn: () => fetchAssigments("019a0217-6811-78a1-8780-365a7d9e158e"),
+  queryFn: () => fetchAssigments("7bae10a4-8993-48ca-b41d-997917898031"),
 });
 
 export const Route = createFileRoute("/_main/assigments")({
