@@ -1,0 +1,184 @@
+package web
+
+import "alkrajnc/wiserer/internal/service"
+import "fmt"
+import "strings"
+
+const (
+	MIN_CELL_WIDTH = 235
+)
+
+templ Timetable(week int, timetable service.Timetable) {
+	{{
+		days := [5]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+		grid := fmt.Sprintf("grid-template-columns: %s;", strings.Join(timetable.CalculateGrid(), " "))
+
+		data := timetable.GroupByWeekday()
+	}}
+	@Base() {
+		<div class="content">
+			<div class="sidebar">
+				<div>
+					<h2>Programs</h2>
+					<div class="sidebar-list">
+						<div class="surface" data-active="true">
+							<span>RIT 1 VS</span>
+						</div>
+						<div class="surface add">
+							<i data-lucide="plus"></i>
+							<span>Add Program</span>
+						</div>
+					</div>
+				</div>
+				<div>
+					<h2>Groups</h2>
+					<div class="sidebar-list">
+						<div class="surface" data-active="true">
+							<span>VP2</span>
+						</div>
+						<div class="surface add">
+							<i data-lucide="plus"></i>
+							<span>Add Group</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="timetable">
+				<h1 class="week-heading">
+					<span class="week-heading-segment">Week</span> { week }
+				</h1>
+				@ColorLegend()
+				<div class="timetable-container" style={ grid }>
+					@TimetableTime()
+					<div class="timetable-grid" style={ grid }>
+						for _, day := range days {
+							@TimetableDay(day)
+						}
+						for _, day := range(data) {
+							@TimetableDataColumn(day)
+						}
+						@TimetableHoursGrid(timetable)
+					</div>
+					// @TimeCursor()
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ ColorLegend() {
+	{{
+		type LegendEntry struct {
+			Name string
+			Data string
+		}
+
+		var legend []LegendEntry
+		legend = append(legend, LegendEntry{
+			Name: "Lecture",
+			Data: "Predavanje",
+		})
+		legend = append(legend, LegendEntry{
+			Name: "Labs",
+			Data: "Racunalniske vaje",
+		})
+		legend = append(legend, LegendEntry{
+			Name: "Seminar",
+			Data: "Seminarske Vaje",
+		})
+	}}
+	<div class="color-legend-list">
+		for _, entry := range (legend) {
+			<div>
+				<div class="color-legend-swatch" data-type={ entry.Data }></div>
+				<span>{ entry.Name }</span>
+			</div>
+		}
+	</div>
+}
+
+templ TimeCursor() {
+	<div id="time-cursor"></div>
+}
+
+templ Entry(entry service.TimetableEntry, colStart int, colEnd int) {
+	{{
+		row := entry.StartsAt.Hour() - 6
+		height := entry.CalculateHeight()
+
+		cssPos := fmt.Sprintf("grid-area: %d / %d / %d / %d;", row, colStart, row+height, colStart+colEnd)
+	}}
+	<div class="timetable-entry" data-type={ entry.Course.Type.String() } style={ cssPos }>
+		<span class="timetable-entry-name">{ entry.Course.Name }</span>
+		<ul>
+			<li>
+				{ entry.StartsAt.Format("15:04") }
+				-
+				{ entry.EndsAt.Format("15:04") }
+			</li>
+			<li>
+				{ entry.Location }
+			</li>
+			<li>
+				{ strings.Join(entry.Professors, ", ") }
+			</li>
+		</ul>
+	</div>
+}
+
+func ColWidth(elements int, colStart int, cols int) int {
+	if elements == 1 {
+		return cols
+	}
+	if (elements - colStart) == 0 {
+		return 1
+	}
+	return cols / elements
+}
+
+templ TimetableDataColumn(day service.TimetableDay) {
+	{{
+		cols := fmt.Sprintf("grid-template-columns: %s;", day.CalculateGridCols())
+		maxConcurrent := day.MaxConcurrent()
+		data := day.PairConcurrent()
+	}}
+	<div class="timetable-data-column" style={ cols }>
+		for _, entryGroup := range(data) {
+			for colOffset, entry := range(entryGroup) {
+				@Entry(entry, colOffset+1, ColWidth(len(entryGroup), colOffset+1, maxConcurrent))
+			}
+		}
+	</div>
+}
+
+templ TimetableTime() {
+	{{ hours := [14]string{"07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17.00", "18:00", "19:00", "20:00"} }}
+	<div class="timetable-timescale">
+		for _, hour := range hours {
+			<span>{ hour }</span>
+		}
+	</div>
+}
+
+templ TimetableHoursGrid(timetable service.Timetable) {
+	{{
+		cols := timetable.ColWidth()
+		width := 0
+		for _, col := range cols {
+			width += MIN_CELL_WIDTH * col
+		}
+
+		cssWidth := fmt.Sprintf("width: %dpx;", width)
+	}}
+	<div class="timetable-hours-grid" style={ cssWidth }>
+		for _ = range(14) {
+			<div></div>
+		}
+	</div>
+}
+
+templ TimetableDay(day string) {
+	<div class="timetable-day">
+		<span>{ day }</span>
+	</div>
+}
