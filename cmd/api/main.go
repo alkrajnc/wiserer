@@ -1,10 +1,12 @@
 package main
 
 import (
+	"alkrajnc/wiserer/cmd/web"
 	internalHttp "alkrajnc/wiserer/internal/http"
 	"alkrajnc/wiserer/internal/service"
 	"alkrajnc/wiserer/pkg/config"
 	"alkrajnc/wiserer/pkg/logger"
+	pkg "alkrajnc/wiserer/pkg/tools"
 	"context"
 	"errors"
 	"fmt"
@@ -28,6 +30,9 @@ func main() {
 }
 
 func run() error {
+
+	pkg.BundleTypescript()
+
 	_ = godotenv.Load()
 
 	cfg, err := config.Load()
@@ -49,10 +54,11 @@ func run() error {
 	defer db.Close() */
 	log.Info("database connected")
 
-	timetableService := service.NewTimetableService(log)
+	timetableService := service.NewTimetableService(log, cfg)
 	timetableHandler := internalHttp.NewTimetableHandler(log, timetableService, cfg)
+	webHandler := web.NewWebHandler(log, timetableService, cfg)
 
-	router := internalHttp.NewRouter(log, *timetableHandler)
+	router := internalHttp.NewRouter(log, *timetableHandler, *webHandler)
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{

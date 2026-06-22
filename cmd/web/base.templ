@@ -6,7 +6,7 @@ templ Base() {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width,initial-scale=1"/>
-			<title>Go Blueprint Hello</title>
+			<title>Wiserer</title>
 			<link href="/assets/css/output.css" rel="stylesheet"/>
 			<script src="/assets/js/htmx.min.js"></script>
 		</head>
@@ -14,11 +14,11 @@ templ Base() {
 			<main>
 				{ children... }
 			</main>
-			<script src="/assets/js/timetable.js"></script>
 			<script src="https://unpkg.com/lucide@latest"></script>
 			<script>
               lucide.createIcons();
 			</script>
+			<script src="/assets/js/app.js" defer></script>
 		</body>
 	</html>
 }

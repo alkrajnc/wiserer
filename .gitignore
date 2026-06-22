@@ -7,3 +7,8 @@ count.txt
 .env
 .nitro
 .tanstack
+
+tmp/
+app.js
+
+*_templ.go

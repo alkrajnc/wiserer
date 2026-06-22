@@ -19,6 +19,31 @@
 
     --bg-secondary: #f8f8f7;
     --gray-150: #e5e5e5;
+
+    --background: #ffffff;
+
+    --red-400: oklch(70.4% 0.191 22.216);
+    --neutral-500: oklch(55.6% 0 0);
+    --neutral-700: oklch(37.1% 0 0);
+    --neutral-800: oklch(26.9% 0 0);
+    --neutral-900: oklch(20.5% 0 0);
+
+    --text-sm: 12px;
+    --text-base: 14px;
+
+    --text-xl: 16px;
+    --text-2xl: 20px;
+    --text-3xl: 24px;
+    --text-4xl: 42px;
+    --text-5xl: 48px;
+
+    --muted: lab(96.52% -0.0000298023 0.0000119209);
+
+    --shadow-lg:
+        0px 24px 48px -8px rgba(0, 0, 0, 0.24),
+        0px 4px 12px -1px rgba(0, 0, 0, 0.12);
+
+    --dropdown-z-index: 80;
 }
 
 html,
@@ -28,28 +53,41 @@ body {
     overflow: hidden;
 }
 
+body {
+    position: relative;
+}
+
 .content {
     display: flex;
+    position: relative;
 }
 
 .timetable {
     flex: 7;
+    width: 90vw;
     padding: 1rem;
     max-height: 100vh;
     overflow: hidden;
 }
 
 .sidebar {
-    flex: 1;
+    width: 10vw;
     background-color: var(--bg-secondary);
     height: 100%;
     border-right: 1px solid var(--border);
     padding: 1rem;
+    padding-top: 4rem;
     min-height: 100vh;
 }
 
+.sidebar[data-collapsed="true"] {
+    width: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
 .sidebar > * {
-    margin: 2rem 0;
+    margin-bottom: 1.5rem;
 }
 
 .sidebar-list {
@@ -59,10 +97,11 @@ body {
 }
 
 .sidebar h2 {
-    font-size: 1rem;
+    font-size: var(--text-base);
     color: var(--muted-foreground);
     margin-left: 0.35rem;
     padding-left: 0;
+    font-weight: 600;
 }
 
 .week-heading {
@@ -74,13 +113,13 @@ body {
 }
 
 .timetable-container {
-    grid-template-columns: repeat(5, 1fr);
-    display: grid;
+    display: flex;
     position: relative;
     height: 100%;
     overflow-y: auto;
     overflow-x: visible;
     padding-left: 70px;
+    padding-top: 1rem;
 }
 
 .timetable-col {
@@ -112,11 +151,12 @@ body {
     position: absolute;
     width: 70px;
     left: 0;
-    top: 50px;
+    top: 55px;
     display: grid;
     grid-template-rows: repeat(14, var(--cell-height));
     grid-template-columns: 1fr;
-    z-index: 999;
+    z-index: 40;
+    user-select: none;
 }
 .timetable-timescale > span {
     color: var(--muted-foreground);
@@ -132,14 +172,15 @@ body {
 }
 .timetable-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: 1fr;
     grid-template-rows: 50px 1fr;
     height: 100%;
     width: 100%;
-    min-width: 70vw;
+    min-width: 80vw;
     overflow-x: visible;
     overflow-y: visible;
     position: relative;
+    padding-bottom: 10rem;
 }
 
 .timetable-entry[data-type="Predavanje"] {
@@ -219,31 +260,16 @@ body {
 .timetable-data-column {
     display: grid;
     grid-template-rows: repeat(14, var(--cell-height));
+    border-right: 1px solid var(--border);
+    height: calc(14 * var(--cell-height));
+}
+
+.timetable-data-column:first-child {
     border-left: 1px solid var(--border);
 }
 
-.timetable-hours-grid {
-    display: grid;
-    grid-template-rows: repeat(14, var(--cell-height));
-    grid-template-columns: 1fr;
-    position: absolute;
-    left: 0;
-    top: 50px;
-    height: 100%;
-    z-index: 10;
+.timetable-hours-grid > div {
     border-bottom: 1px solid var(--border);
-}
-
-.timetable-hours-grid div:first-child {
-    border-top: 1px solid var(--border);
-    width: 100%;
-    height: 100%;
-}
-
-.timetable-hours-grid div:not(:last-child) {
-    border-bottom: 1px solid var(--border);
-    width: 100%;
-    height: 100%;
 }
 
 .timetable-day {
@@ -252,15 +278,23 @@ body {
     color: var(--muted-foreground);
 }
 
+.timetable-day[data-today="true"] > span {
+    background-color: var(--red-300);
+    border-radius: 0.25rem;
+    color: whitesmoke;
+    padding: 0.25rem;
+}
+
 .surface {
     border-radius: 0.5rem;
     transition: 150ms ease-in-out all;
-    padding: 0.35rem 0.7rem;
+    padding: 4px 8px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     height: 25px;
     user-select: none;
+    font-size: var(--text-sm);
 }
 
 .surface:hover {
@@ -271,9 +305,244 @@ body {
     background-color: var(--gray-150);
 }
 
-.surface > span {
-    font-size: 0.9rem;
-}
 .add {
     color: var(--muted-foreground);
+}
+
+.week-navigation-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+.week-header {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+}
+
+.button[data-variant="ghost"] {
+    border: 0;
+    background-color: transparent;
+}
+
+.button[data-size="icon"] {
+    aspect-ratio: 1 / 1;
+}
+
+.button {
+    border: 1px solid var(--border);
+    height: 2rem;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    justify-items: center;
+    align-items: center;
+    gap: 0.2rem;
+    transition: 150ms ease-in-out all;
+    background-color: var(--background);
+    padding: 0.25rem 0.5rem;
+    user-select: none;
+}
+
+.button:hover {
+    background-color: var(--gray-150);
+}
+
+.timetable-day-header {
+    display: grid;
+    border-bottom: 1px solid var(--border);
+}
+.timetable-day-header > div {
+    flex: 1;
+    text-align: center;
+}
+.timetable-data-grid {
+    display: grid;
+    grid-area: 1 / 1 / 1 / 1;
+    grid-template-rows: repeat(14, var(--cell-height));
+}
+
+.timetable-data-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+
+#sidebar-open-button {
+    visibility: collapse;
+}
+
+.timetable-entry:hover {
+    opacity: 0.8;
+}
+
+.tooltip {
+    background-color: var(--neutral-900);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    text-align: center;
+    position: absolute;
+    color: whitesmoke;
+    opacity: 0;
+    transition: 120ms ease-in-out all;
+    font-size: var(--text-sm);
+    transform-origin: top left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.controls {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+}
+
+.icon-muted {
+    color: var(--muted-foreground);
+}
+
+kbd {
+    background-color: var(--neutral-700);
+    color: whitesmoke;
+    border-radius: 4px;
+    padding: 1px 2px;
+}
+
+.dialog-backdrop {
+    background-color: rgba(0, 0, 0, 0.3);
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99;
+}
+
+.dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background-color: var(--background);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    min-width: 450px;
+}
+
+.dialog-title {
+    margin-bottom: 0;
+    font-weight: 600;
+    line-height: normal;
+}
+.dialog-description {
+    color: var(--muted-foreground);
+}
+
+.dialog:focus {
+    outline: 0;
+}
+
+*[c-role="dialog-content"] {
+    display: none;
+}
+
+.program-list {
+    list-style-type: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.program-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 12px 0;
+    transition: 150ms ease-in-out all;
+    border-radius: 0.25rem;
+    padding: 3px 6px;
+    user-select: none;
+}
+.program-item:hover {
+    background-color: var(--gray-150);
+}
+
+.program-item > *:last-child {
+    font-size: var(--text-sm);
+    color: var(--muted-foreground);
+}
+
+.calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    display: grid;
+}
+.calendar-weekday {
+    color: var(--muted-foreground);
+}
+
+.calendar-grid > div {
+    aspect-ratio: 1 / 1;
+    text-align: center;
+    font-size: var(--text-sm);
+}
+
+.calendar-grid > div[data-current-month="true"] {
+}
+.calendar-grid > div[data-current-month="false"] {
+    color: var(--neutral-500);
+}
+.calendar-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: end;
+    flex-direction: row;
+}
+.calendar-controls > span {
+    font-size: var(--text-sm);
+}
+
+.dropdown {
+    background-color: var(--neutral-900);
+    border-radius: 0.5rem;
+    position: absolute;
+    opacity: 0;
+    transition: 150ms ease-in-out all;
+    z-index: var(--dropdown-z-index);
+    inset: 0;
+    width: min-content;
+    height: min-content;
+    min-width: 150px;
+}
+
+*[c-role="dropdown-content"] {
+    display: none;
+}
+
+*[c-type="dropdown"] {
+    width: min-content;
+    height: min-content;
+}
+.dropdown-entry {
+    border-radius: 0.5rem;
+    padding: 8px;
+    transition: 150ms ease-in-out all;
+    user-select: none;
+    color: whitesmoke;
+    font-size: var(--text-sm);
+    margin: 6px;
+}
+
+.dropdown-entry:hover {
+    background-color: var(--neutral-800);
+}
+
+.dropdown-separator {
+    width: 100%;
+    height: 1px;
+    background-color: var(--neutral-800);
+    margin: 4px 0;
 }
