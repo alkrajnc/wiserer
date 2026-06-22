@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -58,9 +60,24 @@ func (h *TimetableHandler) WeeklyTimetable(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *TimetableHandler) SemesterTimetable(w http.ResponseWriter, r *http.Request) {
-	url := h.Config.Variables.WiseBaseURL + "/index.jsp?filterId=0;46;0;0;"
 
-	path, err := h.Service.GetTimetableFile(url)
+	q := r.URL.Query()
+
+	program, err := url.QueryUnescape(q.Get("program"))
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Failed in parsing program query")
+		return
+	}
+	if len(program) == 0 {
+		response.Error(w, http.StatusBadRequest, "Missing program in query")
+		return
+	}
+	year, err := strconv.Atoi(q.Get("year"))
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid year parameter")
+	}
+
+	path, err := h.Service.GetTimetableFile(program, year)
 
 	if err != nil {
 		h.Logger.Error(err.Error())

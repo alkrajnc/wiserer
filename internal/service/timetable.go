@@ -1,6 +1,7 @@
 package service
 
 import (
+	"alkrajnc/wiserer/pkg/config"
 	"context"
 	"fmt"
 	"path/filepath"
@@ -24,21 +25,42 @@ import (
 	"github.com/extrame/xls"
 )
 
-var (
-	SHEET_NAME       = "anualReportSubject"
-	ROW_START_OFFSET = 7
-	LAST_CHANGE_CELL = "J1"
+type Program struct {
+	Name string
+	Year uint
+}
+
+var Programs = map[string]Program{
+	"RIT 1 VS": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE VS (BV20)", Year: 1},
+	"RIT 2 VS": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE VS (BV20)", Year: 2},
+	"RIT 3 VS": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE VS (BV20)", Year: 3},
+	"RIT 1 UN": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE UN (BU20)", Year: 1},
+	"RIT 2 UN": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE UN (BU20)", Year: 2},
+	"RIT 3 UN": {Name: "RAČUNALNIŠTVO IN INFORMACIJSKE TEHNOLOGIJE UN (BU20)", Year: 3},
+	"ITK 1 VS": {Name: "INFORMATIKA IN TEHNOLOGIJE KOMUNICIRANJA VS (BV30)", Year: 1},
+	"ITK 2 VS": {Name: "INFORMATIKA IN TEHNOLOGIJE KOMUNICIRANJA VS (BV30)", Year: 2},
+	"ITK 3 VS": {Name: "INFORMATIKA IN TEHNOLOGIJE KOMUNICIRANJA VS (BV30)", Year: 3},
+}
+
+const (
+	PROGRAM_SELECTION_BUTTON = `div[id="form:j_idt176"]`
+	PROGRAM_SELECTION_ITEMS  = `ul[id="form:j_idt176_items"]`
+	YEAR_SELECTION_BUTTON    = `div[id="form:j_idt180"]`
+	YEAR_SELECTION_ITEM      = `form:j_idt180`
+	DOWNLOAD_BUTTON          = `button[name="reporstForm:j_idt748"]`
+	DOWNLOAD_MODAL_BUTTON    = `button[name="form:j_idt240"]`
+	SHEET_NAME               = "anualReportSubject"
 )
 
 type TimetableService struct {
-	logger         *zap.Logger
-	downloadPath   string
-	screenshotPath string
+	logger *zap.Logger
+	Config *config.Config
 }
 
-func NewTimetableService(logger *zap.Logger) TimetableService {
+func NewTimetableService(logger *zap.Logger, cfg *config.Config) TimetableService {
 	return TimetableService{
 		logger: logger,
+		Config: cfg,
 	}
 }
 
@@ -54,6 +76,13 @@ const (
 	PR
 	LV
 	SV
+)
+
+type TimetableType int
+
+const (
+	INDUVIDUAL TimetableType = iota
+	GROUPS
 )
 
 var courseType = map[CourseType]string{
@@ -305,7 +334,7 @@ func GetNumRows(f *excelize.File) (int, error) {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		if len(cell) == 0 {
+		if len(cell) == 0 || cell == "Rezervacije" {
 			return idx - 1, nil
 		}
 		idx++
@@ -331,6 +360,25 @@ func ParseTime(times string, date string) TimetableEntryTime {
 	return TimetableEntryTime{StartsAt: startsAt, EndsAt: endsAt}
 }
 
+func GetTimetableType(f *excelize.File) (TimetableType, error) {
+	cell, err := f.GetCellValue(SHEET_NAME, "I1")
+	if err != nil {
+		return -1, err
+	}
+	if len(cell) == 0 {
+		return INDUVIDUAL, nil
+	}
+	cell, err = f.GetCellValue(SHEET_NAME, "J1")
+	if err != nil {
+		return -1, err
+	}
+	if len(cell) == 0 {
+		return GROUPS, nil
+	}
+
+	return GROUPS, nil
+}
+
 func (s *TimetableService) ParseTimetable(path string) (Timetable, error) {
 	f, err := excelize.OpenFile(path)
 	if err != nil {
@@ -344,46 +392,82 @@ func (s *TimetableService) ParseTimetable(path string) (Timetable, error) {
 	}()
 
 	rowCount, err := GetNumRows(f)
-
 	if err != nil {
 		return Timetable{}, err
 	}
 
-	lastChange, err := f.GetCellValue(SHEET_NAME, LAST_CHANGE_CELL)
+	tableType, err := GetTimetableType(f)
+
+	lastChangeCell := "I1"
+	if tableType == INDUVIDUAL {
+		lastChangeCell = "J1"
+	}
+
+	dayCell := "B"
+	dateCell := "C"
+
+	rowStartOffset := 4
+	if tableType == INDUVIDUAL {
+		rowStartOffset = 7
+	}
+	timeCell := "D"
+	if tableType == INDUVIDUAL {
+		timeCell = "E"
+	}
+	locationCell := "E"
+	if tableType == INDUVIDUAL {
+		locationCell = "F"
+	}
+	nameCell := "F"
+	if tableType == INDUVIDUAL {
+		nameCell = "G"
+	}
+	groupCell := "H"
+	if tableType == INDUVIDUAL {
+		groupCell = "I"
+	}
+	professorsCell := "J"
+	if tableType == INDUVIDUAL {
+		professorsCell = "K"
+	}
+
+	lastChange, err := f.GetCellValue(SHEET_NAME, lastChangeCell)
+
 	if err != nil {
 		logger.Info("failed to get last change timestamp")
 		return Timetable{}, err
 	}
+
 	lastChangeTimestamp, err := ParseDateTime(lastChange[18:])
 
 	var entries []TimetableEntry
 
-	for j := ROW_START_OFFSET; j < rowCount; j++ {
-		day, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'B', j))
+	for j := rowStartOffset; j < rowCount; j++ {
+		day, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", dayCell, j))
 		if err != nil {
 			day = ""
 		}
-		date, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'C', j))
+		date, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", dateCell, j))
 		if err != nil {
 			date = ""
 		}
-		time, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'E', j))
+		time, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", timeCell, j))
 		if err != nil {
 			time = ""
 		}
-		location, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'F', j))
+		location, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", locationCell, j))
 		if err != nil {
 			location = ""
 		}
-		name, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'G', j))
+		name, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", nameCell, j))
 		if err != nil {
 			name = ""
 		}
-		group, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'I', j))
+		group, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", groupCell, j))
 		if err != nil {
 			group = ""
 		}
-		professors, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%c%d", 'K', j))
+		professors, err := f.GetCellValue(SHEET_NAME, fmt.Sprintf("%s%d", professorsCell, j))
 		if err != nil {
 			professors = ""
 		}
@@ -426,7 +510,7 @@ func (e *TimetableEntry) CalculateHeight() int {
 	return e.EndsAt.Hour() - e.StartsAt.Hour()
 }
 
-func (s *TimetableService) GetTimetableFile(url string) (string, error) {
+func (s *TimetableService) GetTimetableFile(program string, year int) (string, error) {
 
 	chromedpCtx, chromedpCancel := chromedp.NewContext(context.Background())
 	defer chromedpCancel()
@@ -452,15 +536,63 @@ func (s *TimetableService) GetTimetableFile(url string) (string, error) {
 
 	if err := chromedp.Run(ctx,
 		chromedp.EmulateViewport(1280, 720),
-		chromedp.Navigate(url),
-		chromedp.Click(`button[name="form:j_idt240"]`, chromedp.NodeVisible),
+		chromedp.Navigate(s.Config.Variables.WiseBaseURL),
 	); err != nil {
 		return "", fmt.Errorf("Failed to navigate to url. %s", err.Error())
 	}
 
-	if err := s.captureScreenshot(ctx, "canceled"); err != nil {
-		return "", fmt.Errorf("failed to take screenshot: %s", err.Error())
+	var programID string
+
+	programSelector := fmt.Sprintf(`li[data-label=\"%s\"]`, program)
+	if err := chromedp.Run(ctx,
+		chromedp.Evaluate(fmt.Sprintf(`
+			const el = document.querySelector("%s")
+			JSON.stringify(el.id)
+		`, programSelector), &programID),
+	); err != nil {
+		return "", fmt.Errorf("Failed to retrieve program ID(%s)", err.Error())
 	}
+
+	programSelector = fmt.Sprintf(`li[id="%s"]`, strings.ReplaceAll(programID, "\"", ""))
+	if err := chromedp.Run(ctx,
+		chromedp.Click(PROGRAM_SELECTION_BUTTON),
+		chromedp.WaitVisible(PROGRAM_SELECTION_ITEMS),
+		chromedp.Click(programSelector),
+	); err != nil {
+		return "", fmt.Errorf("Failed to open program selection(%s)", err.Error())
+	}
+	s.CaptureScreenshot(ctx, "program_selection")
+
+	if err := chromedp.Run(ctx,
+		chromedp.WaitVisible(YEAR_SELECTION_BUTTON),
+		chromedp.Click(YEAR_SELECTION_BUTTON),
+	); err != nil {
+		return "", fmt.Errorf("Failed to open year selection(%s)", err.Error())
+	}
+	s.CaptureScreenshot(ctx, "year_modal")
+
+	if err := chromedp.Run(ctx, chromedp.Evaluate(`
+		    (() => {
+		        const btn = document.querySelector('li[id="form:j_idt180_`+strconv.Itoa(year)+`"]');
+				btn.click();
+		    })()
+	    `, nil), chromedp.Sleep(time.Millisecond*200)); err != nil {
+		return "", fmt.Errorf("Failed to select year(%s)", err.Error())
+	}
+
+	s.CaptureScreenshot(ctx, "year_selection")
+
+	if err := chromedp.Run(ctx,
+		chromedp.WaitVisible(DOWNLOAD_MODAL_BUTTON),
+		chromedp.Click(DOWNLOAD_MODAL_BUTTON),
+	); err != nil {
+		if err := s.CaptureScreenshot(chromedpCtx, "download_modal"); err != nil {
+			s.logger.Warn("failed to take screenshot " + err.Error())
+		}
+		return "", fmt.Errorf("Failed to open download modal")
+	}
+
+	s.CaptureScreenshot(ctx, "download_modal")
 
 	if err := chromedp.Run(ctx,
 		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
@@ -472,14 +604,13 @@ func (s *TimetableService) GetTimetableFile(url string) (string, error) {
 	            return _orig.call(this, form, params, '');
 	        };
         `, nil),
-		chromedp.WaitVisible(`button[name="form:j_idt240"]`),
-		chromedp.Click(`button[name="reporstForm:j_idt748"]`, chromedp.NodeVisible),
+		chromedp.WaitVisible(DOWNLOAD_BUTTON, chromedp.ByQuery),
+		chromedp.Click(DOWNLOAD_BUTTON, chromedp.NodeVisible),
 	); err != nil && !strings.Contains(err.Error(), "net::ERR_ABORTED") {
+		if err := s.CaptureScreenshot(chromedpCtx, "download_file"); err != nil {
+			s.logger.Warn("failed to take screenshot " + err.Error())
+		}
 		return "", fmt.Errorf("failed to start download: %w", err)
-	}
-
-	if err := s.captureScreenshot(ctx, "canceled"); err != nil {
-		return "", fmt.Errorf("failed to take screenshot: %s", err.Error())
 	}
 
 	select {
@@ -493,20 +624,13 @@ func (s *TimetableService) GetTimetableFile(url string) (string, error) {
 		return filename, nil
 
 	case err := <-downloadErr:
-		_ = s.captureScreenshot(ctx, "error")
+		_ = s.CaptureScreenshot(chromedpCtx, "error")
 		return "", err
 	case <-ctx.Done():
-		_ = s.captureScreenshot(ctx, "canceled")
+		_ = s.CaptureScreenshot(chromedpCtx, "canceled")
 		s.logger.Warn("download canceled " + ctx.Err().Error())
 		return "", ctx.Err()
 	}
-}
-
-func replaceFile(src, dst, backupPath string) error {
-	if err := os.Rename(dst, backupPath); err != nil {
-		return err
-	}
-	return os.Rename(src, dst)
 }
 
 func filesAreEqual(a, b string) (bool, error) {
@@ -535,10 +659,10 @@ func hashFile(path string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-func (d *TimetableService) captureScreenshot(ctx context.Context, errorType string) error {
+func (d *TimetableService) CaptureScreenshot(ctx context.Context, errorType string) error {
 	ts := time.Now().Format("20060102_150405")
 	filename := fmt.Sprintf("%s_%s.png", errorType, ts)
-	screenshotPath := filepath.Join("/tmp", filename)
+	screenshotPath := filepath.Join("/home/aljaz/Pictures/debug", filename)
 
 	var buf []byte
 	if err := chromedp.Run(ctx, chromedp.FullScreenshot(&buf, 90)); err != nil {
@@ -555,3 +679,28 @@ func (d *TimetableService) captureScreenshot(ctx context.Context, errorType stri
 
 var _ = cdp.NodeID(0)
 var _ = network.ResourceTypeDocument
+
+func Debug(ctx context.Context, script string) {
+	var debug string
+	if err := chromedp.Run(ctx,
+		chromedp.Evaluate(script, &debug),
+	); err != nil {
+		fmt.Println("ERROR: failed to evaluate: ", err.Error())
+	}
+
+	fmt.Println("DEBUG: ", debug)
+}
+
+func (t *Timetable) FilterByWeek(week int) Timetable {
+
+	var entries []TimetableEntry
+
+	for _, entry := range t.Entries {
+		_, entryWeek := entry.StartsAt.ISOWeek()
+		if week == entryWeek {
+			entries = append(entries, entry)
+		}
+	}
+
+	return Timetable{LastChange: t.LastChange, Entries: entries}
+}

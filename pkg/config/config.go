@@ -18,11 +18,19 @@ type Variables struct {
 	DownloadButtonQuery   string
 }
 
+type Selectors struct {
+	ProgramSelectDropdown  string
+	ProgramSelectContainer string
+	ProgramURLInput        string
+	ProgramURLButton       string
+}
+
 type Config struct {
 	Server    ServerConfig
 	Database  DatabaseConfig
 	Log       LogConfig
 	Variables Variables
+	Selectors Selectors
 }
 
 type ServerConfig struct {
@@ -80,6 +88,12 @@ func Load() (*Config, error) {
 			DateRangeStartInputId: env("DATE_RANGE_START_INPUT", "#reporstForm:reportDateFrom_input"),
 			DateRangeEndInputId:   env("DATE_RANGE_END_INPUT", "#reporstForm:reportDateTo_input"),
 			DownloadButtonQuery:   env("DOWNLOAD_BUTTON", "#reporstForm:j_idt748"),
+		},
+		Selectors: Selectors{
+			ProgramSelectDropdown:  env("PROGRAM_SELECT_CONTAINER", "#form:j_idt176_items"),
+			ProgramSelectContainer: env("PROGRAM_SELECT_CONTAINER", "#form:j_idt176_items"),
+			ProgramURLInput:        env("PROGRAM_URL_INPUT", "#createLinkForm:j_idt968"),
+			ProgramURLButton:       env("PROGRAM_URL_BUTTON", "#form:j_idt164"),
 		},
 	}, nil
 }

@@ -3,61 +3,100 @@ package web
 import "alkrajnc/wiserer/internal/service"
 import "fmt"
 import "strings"
+import "strconv"
+import "time"
+import "alkrajnc/wiserer/cmd/web/components"
 
 const (
-	MIN_CELL_WIDTH = 235
+	MIN_CELL_WIDTH = 300
 )
+
+type Day struct {
+	Day  string
+	Time time.Time
+}
+
+func FormatDays(week int) []Day {
+	dayNames := [5]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+	var days []Day
+
+	now := time.Now()
+	year := now.Year()
+
+	jan4 := time.Date(year, time.January, 4, 0, 0, 0, 0, now.Location())
+	jan4Weekday := int(jan4.Weekday())
+	if jan4Weekday == 0 {
+		jan4Weekday = 7
+	}
+	week1Monday := jan4.AddDate(0, 0, -(jan4Weekday - 1))
+
+	startTime := week1Monday.AddDate(0, 0, (week-1)*7)
+
+	for i := range 5 {
+		day := Day{
+			Day:  dayNames[i],
+			Time: startTime.AddDate(0, 0, i),
+		}
+		days = append(days, day)
+	}
+	return days
+}
 
 templ Timetable(week int, timetable service.Timetable) {
 	{{
-		days := [5]string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+		days := FormatDays(week)
 		grid := fmt.Sprintf("grid-template-columns: %s;", strings.Join(timetable.CalculateGrid(), " "))
-
 		data := timetable.GroupByWeekday()
 	}}
 	@Base() {
 		<div class="content">
-			<div class="sidebar">
-				<div>
-					<h2>Programs</h2>
-					<div class="sidebar-list">
-						<div class="surface" data-active="true">
-							<span>RIT 1 VS</span>
-						</div>
-						<div class="surface add">
-							<i data-lucide="plus"></i>
-							<span>Add Program</span>
-						</div>
-					</div>
-				</div>
-				<div>
-					<h2>Groups</h2>
-					<div class="sidebar-list">
-						<div class="surface" data-active="true">
-							<span>VP2</span>
-						</div>
-						<div class="surface add">
-							<i data-lucide="plus"></i>
-							<span>Add Group</span>
-						</div>
-					</div>
-				</div>
+			<div class="controls">
+				<button c-type="tooltip" c-data='{"content": "Toggle Sidebar <kbd>CTRL</kbd> <kbd>\\</kbd>", "position": "bottom"}' class="button" id="sidebar-toggle-button" data-size="icon" data-variant="ghost">
+					<i class="icon-muted" data-lucide="panel-left" width="18" height="18"></i>
+				</button>
 			</div>
+			@web.Sidebar()
 			<div class="timetable">
-				<h1 class="week-heading">
-					<span class="week-heading-segment">Week</span> { week }
-				</h1>
-				@ColorLegend()
+				<div class="week-header">
+					<h1 class="week-heading">
+						<span class="week-heading-segment">Week</span> { week }
+					</h1>
+					<div class="week-navigation-container">
+						{{
+							nextWeekLink := "/timetable/week/" + strconv.Itoa(week+1)
+							prevWeekLink := "/timetable/week/" + strconv.Itoa(week-1)
+						}}
+						<a href={ prevWeekLink }>
+							<button aria-label="Previous Week" c-type="tooltip" c-data='{"content": "Previous Week <kbd>CTRL</kbd> <kbd>←</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_f07a8d" class="button" id="prev-week-button">
+								<i data-lucide="chevron-left"></i>
+							</button>
+						</a>
+						<a href={ nextWeekLink }>
+							<button aria-label="Next Week" c-type="tooltip" c-data='{"content": "Next Week <kbd>CTRL</kbd> <kbd>→</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_7af7cf" class="button" id="next-week-button">
+								<i data-lucide="chevron-right"></i>
+							</button>
+						</a>
+					</div>
+					@ColorLegend()
+				</div>
 				<div class="timetable-container" style={ grid }>
 					@TimetableTime()
-					<div class="timetable-grid" style={ grid }>
-						for _, day := range days {
-							@TimetableDay(day)
-						}
-						for _, day := range(data) {
-							@TimetableDataColumn(day)
-						}
-						@TimetableHoursGrid(timetable)
+					<div class="timetable-grid">
+						<div class="timetable-day-header" style={ grid }>
+							for _, day := range days {
+								@TimetableDay(day)
+							}
+						</div>
+						<div class="timetable-data-grid-container">
+							<div class="timetable-data-grid" style={ grid }>
+								for _, day := range(data) {
+									@TimetableDataColumn(day)
+								}
+							</div>
+							<div class="timetable-data-grid timetable-hours-grid" style={ grid }>
+								@TimetableHoursGrid(timetable)
+							</div>
+						</div>
 					</div>
 					// @TimeCursor()
 				</div>
@@ -105,7 +144,6 @@ templ Entry(entry service.TimetableEntry, colStart int, colEnd int) {
 	{{
 		row := entry.StartsAt.Hour() - 6
 		height := entry.CalculateHeight()
-
 		cssPos := fmt.Sprintf("grid-area: %d / %d / %d / %d;", row, colStart, row+height, colStart+colEnd)
 	}}
 	<div class="timetable-entry" data-type={ entry.Course.Type.String() } style={ cssPos }>
@@ -161,24 +199,23 @@ templ TimetableTime() {
 }
 
 templ TimetableHoursGrid(timetable service.Timetable) {
-	{{
-		cols := timetable.ColWidth()
-		width := 0
-		for _, col := range cols {
-			width += MIN_CELL_WIDTH * col
-		}
-
-		cssWidth := fmt.Sprintf("width: %dpx;", width)
-	}}
-	<div class="timetable-hours-grid" style={ cssWidth }>
-		for _ = range(14) {
-			<div></div>
-		}
-	</div>
+	for _ = range(14*5) {
+		<div></div>
+	}
 }
 
-templ TimetableDay(day string) {
-	<div class="timetable-day">
-		<span>{ day }</span>
+templ TimetableDay(day Day) {
+	{{
+		yToday, mToday, dToday := time.Now().Date()
+		y, m, d := day.Time.Date()
+
+		isToday := false
+
+		if yToday == y && mToday == m && dToday == d {
+			isToday = true
+		}
+	}}
+	<div class="timetable-day" data-today={ isToday }>
+		<span>{ day.Day }</span>
 	</div>
 }

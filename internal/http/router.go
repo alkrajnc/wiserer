@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(logger *zap.Logger, timetableHandler TimetableHandler) http.Handler {
+func NewRouter(logger *zap.Logger, timetableHandler TimetableHandler, webHandler web.WebHandler) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(chimiddleware.RequestID)
@@ -40,6 +40,10 @@ func NewRouter(logger *zap.Logger, timetableHandler TimetableHandler) http.Handl
 
 	r.Route("/api/v1", func(r chi.Router) {
 		timetableHandler.RegisterRoutes(r)
+	})
+
+	r.Route("/", func(r chi.Router) {
+		webHandler.RegisterRoutes(r)
 	})
 
 	return r
