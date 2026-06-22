@@ -10,3 +10,5 @@ count.txt
 
 tmp/
 app.js
+
+*_templ.go

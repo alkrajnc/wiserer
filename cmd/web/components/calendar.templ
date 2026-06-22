@@ -1,0 +1,73 @@
+package web
+
+import "time"
+
+func DaysInMonth(t time.Time) int {
+	firstOfNextMonth := time.Date(
+		t.Year(),
+		t.Month()+1,
+		1,
+		0, 0, 0, 0,
+		t.Location(),
+	)
+
+	lastOfThisMonth := firstOfNextMonth.AddDate(0, 0, -1)
+	return lastOfThisMonth.Day()
+}
+
+type CalendarDay struct {
+	Day            time.Time
+	IsCurrentMonth bool
+}
+
+templ Calendar(reference time.Time) {
+	{{ weekdays := []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"} }}
+	{{
+		var days []CalendarDay
+
+		firstDay := time.Date(reference.Year(), reference.Month(), 1, 0, 0, 0, 0, reference.Location())
+		startOffset := firstDay.Weekday()
+
+		if startOffset > 0 {
+			lastMonthLastDay := firstDay.AddDate(0, 0, -1)
+			lastMonthDays := DaysInMonth(lastMonthLastDay)
+			lastMonthOffsetStart := time.Date(lastMonthLastDay.Year(), lastMonthLastDay.Month(), lastMonthDays-int(startOffset), 0, 0, 0, 0, time.UTC)
+			for _ = range startOffset {
+				days = append(days, CalendarDay{Day: lastMonthOffsetStart, IsCurrentMonth: false})
+				lastMonthOffsetStart = lastMonthOffsetStart.AddDate(0, 0, 1)
+			}
+		}
+		for _ = range DaysInMonth(firstDay) {
+			days = append(days, CalendarDay{Day: firstDay, IsCurrentMonth: true})
+			firstDay = firstDay.AddDate(0, 0, 1)
+		}
+
+		nextMonthFirstDay := firstDay.AddDate(0, 1, 0)
+
+		for _ = range (7 * 6) - len(days) {
+			days = append(days, CalendarDay{Day: nextMonthFirstDay, IsCurrentMonth: false})
+			nextMonthFirstDay = nextMonthFirstDay.AddDate(0, 0, 1)
+		}
+	}}
+	<div>
+		<div class="calendar-controls">
+			<span>
+				{ reference.Month().String() } { reference.Year() }
+			</span>
+			// <button c-type="tooltip" c-data='{"content": "Previous Month", "position": "top"}' type="button" class="button" data-variant="ghost" data-size="icon">
+			// 	<i class="icon-muted" data-lucide="chevron-up" width="18" height="18"></i>
+			// </button>
+			// <button c-type="tooltip" c-data='{"content": "Next Month", "position": "top"}' type="button" class="button" data-variant="ghost" data-size="icon">
+			// 	<i class="icon-muted" data-lucide="chevron-down" width="18" height="18"></i>
+			// </button>
+		</div>
+		<div class="calendar-grid">
+			for _, weekday := range weekdays {
+				<div class="calendar-weekday">{ weekday[:2] }</div>
+			}
+			for _, day := range days {
+				<div data-current-month={ day.IsCurrentMonth }>{ day.Day.Day() }</div>
+			}
+		</div>
+	</div>
+}

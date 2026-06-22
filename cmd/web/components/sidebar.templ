@@ -1,0 +1,66 @@
+package web
+
+import "alkrajnc/wiserer/internal/service"
+import "time"
+
+templ Sidebar() {
+	<div class="sidebar" id="sidebar" data-collapsed="false">
+		@Calendar(time.Now())
+		<div>
+			<h2>Programs</h2>
+			<div class="sidebar-list">
+				<div class="surface" data-active="true">
+					<span>RIT 1 VS</span>
+				</div>
+				<div c-type="dialog">
+					<div class="surface add" c-role="dialog-trigger">
+						<i data-lucide="plus"></i>
+						<span>Add Program</span>
+					</div>
+					<div c-role="dialog-content">
+						<h3 class="dialog-title">
+							Add a new program
+						</h3>
+						<p class="dialog-description">Add a program to select</p>
+						<ul class="program-list">
+							for key, value := range service.Programs {
+								<li class="program-item">
+									<span>{ key }</span>
+									<span>{ value.Name }</span>
+								</li>
+							}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div>
+			<h2>Groups</h2>
+			<div class="sidebar-list">
+				<div class="surface" data-active="true">
+					<span>VP2</span>
+				</div>
+				<div class="surface add">
+					<i data-lucide="plus"></i>
+					<span>Add Group</span>
+				</div>
+			</div>
+		</div>
+		<div>
+			<div c-type="dropdown" c-data='{"position": "top", "alignment": "left"}'>
+				<button class="button" c-role="dropdown-trigger" data-size="icon" data-variant="ghost">
+					<i width="18" height="18" class="icon-muted" data-lucide="circle-question-mark"></i>
+				</button>
+				<div c-role="dropdown-content">
+					<div class="dropdown-entry">
+						Keybinds
+					</div>
+					<div class="dropdown-separator"></div>
+					<div class="dropdown-entry">
+						Wiserer v0.0.1
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
