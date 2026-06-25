@@ -1,9 +1,9 @@
-import focusGuard from "./focus-guard";
-
 const dialogs = document.querySelectorAll(`[c-type="dialog"]`);
 
+export const CloseDialog = new CustomEvent("closedialog");
+
 function getDialogTrigger(dialog: HTMLElement): HTMLElement | null {
-  let children = dialog.children;
+  const children = dialog.children;
 
   for (const node of children) {
     const role = node.getAttribute("c-role");
@@ -14,11 +14,11 @@ function getDialogTrigger(dialog: HTMLElement): HTMLElement | null {
 }
 
 function getDialogContent(dialog: HTMLElement): HTMLElement | null {
-  let children = dialog.children;
+  const children = dialog.children;
 
   for (const node of children) {
     const role = node.getAttribute("c-role");
-    if (role === "dialog-content") return node as HTMLElement;
+    if (role === "dialog-content") return node.cloneNode(true) as HTMLElement;
   }
 
   return null;
@@ -47,6 +47,10 @@ function buildDialog(dialog: HTMLElement) {
     }
   });
 
+  dialog.addEventListener("closedialog", () =>
+    closeDialog(modal, modalBackdrop),
+  );
+
   modalBackdrop.addEventListener("click", () => {
     closeDialog(modal, modalBackdrop);
   });
@@ -67,5 +71,7 @@ function buildDialog(dialog: HTMLElement) {
 }
 
 export function initDialogs() {
-  dialogs.forEach((dialog) => buildDialog(dialog as HTMLElement));
+  dialogs.forEach((dialog) => {
+    buildDialog(dialog as HTMLElement);
+  });
 }

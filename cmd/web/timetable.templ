@@ -1,11 +1,12 @@
 package web
 
-import "alkrajnc/wiserer/internal/service"
-import "fmt"
-import "strings"
-import "strconv"
-import "time"
-import "alkrajnc/wiserer/cmd/web/components"
+import (
+	"alkrajnc/wiserer/internal/service"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
 
 const (
 	MIN_CELL_WIDTH = 300
@@ -42,63 +43,59 @@ func FormatDays(week int) []Day {
 	return days
 }
 
-templ Timetable(week int, timetable service.Timetable) {
+templ Timetable(week int, timetable service.Timetable, program string) {
 	{{
 		days := FormatDays(week)
 		grid := fmt.Sprintf("grid-template-columns: %s;", strings.Join(timetable.CalculateGrid(), " "))
 		data := timetable.GroupByWeekday()
 	}}
-	@Base() {
-		<div class="content">
-			<div class="controls">
-				<button c-type="tooltip" c-data='{"content": "Toggle Sidebar <kbd>CTRL</kbd> <kbd>\\</kbd>", "position": "bottom"}' class="button" id="sidebar-toggle-button" data-size="icon" data-variant="ghost">
-					<i class="icon-muted" data-lucide="panel-left" width="18" height="18"></i>
-				</button>
-			</div>
-			@web.Sidebar()
-			<div class="timetable">
-				<div class="week-header">
+	@MainRouteLayout(program) {
+		<div class="timetable">
+			<div class="week-header">
+				<div>
+					<div class="chip">
+						{ program }
+					</div>
 					<h1 class="week-heading">
 						<span class="week-heading-segment">Week</span> { week }
 					</h1>
-					<div class="week-navigation-container">
-						{{
-							nextWeekLink := "/timetable/week/" + strconv.Itoa(week+1)
-							prevWeekLink := "/timetable/week/" + strconv.Itoa(week-1)
-						}}
-						<a href={ prevWeekLink }>
-							<button aria-label="Previous Week" c-type="tooltip" c-data='{"content": "Previous Week <kbd>CTRL</kbd> <kbd>←</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_f07a8d" class="button" id="prev-week-button">
-								<i data-lucide="chevron-left"></i>
-							</button>
-						</a>
-						<a href={ nextWeekLink }>
-							<button aria-label="Next Week" c-type="tooltip" c-data='{"content": "Next Week <kbd>CTRL</kbd> <kbd>→</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_7af7cf" class="button" id="next-week-button">
-								<i data-lucide="chevron-right"></i>
-							</button>
-						</a>
-					</div>
-					@ColorLegend()
 				</div>
-				<div class="timetable-container" style={ grid }>
-					@TimetableTime()
-					<div class="timetable-grid">
-						<div class="timetable-day-header" style={ grid }>
-							for _, day := range days {
-								@TimetableDay(day)
+				<div class="week-navigation-container">
+					{{
+						nextWeekLink := "/timetable/week/" + strconv.Itoa(week+1)
+						prevWeekLink := "/timetable/week/" + strconv.Itoa(week-1)
+					}}
+					<a href={ prevWeekLink }>
+						<button aria-label="Previous Week" c-type="tooltip" c-data='{"content": "Previous Week <kbd>CTRL</kbd> <kbd>←</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_f07a8d" class="button" id="prev-week-button">
+							<i data-lucide="chevron-left"></i>
+						</button>
+					</a>
+					<a href={ nextWeekLink }>
+						<button aria-label="Next Week" c-type="tooltip" c-data='{"content": "Next Week <kbd>CTRL</kbd> <kbd>→</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_7af7cf" class="button" id="next-week-button">
+							<i data-lucide="chevron-right"></i>
+						</button>
+					</a>
+				</div>
+				@ColorLegend()
+			</div>
+			<div class="timetable-container" style={ grid }>
+				@TimetableTime()
+				<div class="timetable-grid">
+					<div class="timetable-day-header" style={ grid }>
+						for _, day := range days {
+							@TimetableDay(day)
+						}
+					</div>
+					<div class="timetable-data-grid-container">
+						<div class="timetable-data-grid" style={ grid }>
+							for _, day := range(data) {
+								@TimetableDataColumn(day)
 							}
 						</div>
-						<div class="timetable-data-grid-container">
-							<div class="timetable-data-grid" style={ grid }>
-								for _, day := range(data) {
-									@TimetableDataColumn(day)
-								}
-							</div>
-							<div class="timetable-data-grid timetable-hours-grid" style={ grid }>
-								@TimetableHoursGrid(timetable)
-							</div>
+						<div class="timetable-data-grid timetable-hours-grid" style={ grid }>
+							@TimetableHoursGrid(timetable)
 						</div>
 					</div>
-					// @TimeCursor()
 				</div>
 			</div>
 		</div>
