@@ -57,6 +57,20 @@ body {
     position: relative;
 }
 
+a {
+    text-decoration: none;
+    color: inherit;
+}
+a:visited {
+    color: inherit;
+}
+
+.main {
+    width: 100%;
+    justify-content: center;
+    align-content: center;
+}
+
 .content {
     display: flex;
     position: relative;
@@ -64,14 +78,13 @@ body {
 
 .timetable {
     flex: 7;
-    width: 90vw;
     padding: 1rem;
     max-height: 100vh;
     overflow: hidden;
 }
 
 .sidebar {
-    width: 10vw;
+    width: 12vw;
     background-color: var(--bg-secondary);
     height: 100%;
     border-right: 1px solid var(--border);
@@ -107,6 +120,7 @@ body {
 .week-heading {
     font-size: 3rem;
     font-weight: 900;
+    margin-top: 0;
 }
 .week-heading-segment {
     font-weight: 500;
@@ -207,6 +221,17 @@ body {
     align-items: center;
     border: 1px solid var(--border);
     border-radius: 1rem;
+    width: max-content;
+}
+
+.chip {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
     width: max-content;
 }
 
@@ -545,4 +570,58 @@ kbd {
     height: 1px;
     background-color: var(--neutral-800);
     margin: 4px 0;
+}
+
+.no-program {
+    display: flex;
+    justify-items: center;
+    text-align: center;
+    flex-direction: column;
+    padding: 1rem;
+    height: min-content;
+}
+
+.no-program > h2 {
+    margin-bottom: 0;
+    line-height: 0;
+    text-align: center;
+}
+
+.no-program > p {
+    color: var(--muted-foreground);
+    text-align: center;
+}
+.no-program .program-item {
+    text-align: left;
+    justify-content: start;
+}
+
+.program-item-list {
+    margin: 0 auto;
+}
+
+#programs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.parent .hidden-child {
+    visibility: hidden;
+}
+
+.parent:hover .hidden-child {
+    visibility: visible;
+}
+
+.delete-program-icon {
+    color: var(--muted-foreground);
+}
+
+.delete-program-icon:hover {
+    color: var(--red-400);
+}
+
+.program-chip {
+    justify-content: space-between;
 }

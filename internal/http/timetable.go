@@ -1,16 +1,13 @@
 package http
 
 import (
-	"alkrajnc/wiserer/cmd/web"
 	"alkrajnc/wiserer/internal/service"
 	"alkrajnc/wiserer/pkg/config"
 	"alkrajnc/wiserer/pkg/response"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -33,30 +30,7 @@ func NewTimetableHandler(logger *zap.Logger, service service.TimetableService, c
 func (h *TimetableHandler) RegisterRoutes(r chi.Router) {
 	r.Route("/timetable", func(r chi.Router) {
 		r.Get("/", h.SemesterTimetable)
-		r.Get("/week", h.WeeklyTimetable)
 	})
-}
-
-func (h *TimetableHandler) WeeklyTimetable(w http.ResponseWriter, r *http.Request) {
-
-	timetable, err := h.Service.ParseTimetable("/home/aljaz/Downloads/timetable_495468531.xlsx")
-
-	if err != nil {
-		h.Logger.Error(err.Error())
-		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to parse timetable: %s", err.Error()))
-		return
-	}
-
-	var data []service.TimetableEntry = timetable.Entries[14:37]
-	timetable = service.Timetable{LastChange: time.Now(), Entries: data}
-
-	component := web.Timetable(1, service.Timetable{LastChange: time.Now(), Entries: data})
-	err = component.Render(r.Context(), w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Fatalf("Error rendering in HelloWebHandler: %e", err)
-	}
-
 }
 
 func (h *TimetableHandler) SemesterTimetable(w http.ResponseWriter, r *http.Request) {

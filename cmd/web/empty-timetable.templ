@@ -1,0 +1,25 @@
+package web
+
+import "alkrajnc/wiserer/internal/service"
+
+templ EmptyTimetableState() {
+	@MainRouteLayout("") {
+		<div class="no-program">
+			<h2>No Program Selected</h2>
+			<p>
+				To continue select a program.
+			</p>
+			<div class="program-item-list">
+				for _, val := range(service.Programs) {
+					{{ href := "?program=" + val.Slug }}
+					<a href={ href }>
+						<div class="program-item">
+							<span>{ val.Slug }</span>
+							<span>{ val.Name }</span>
+						</div>
+					</a>
+				}
+			</div>
+		</div>
+	}
+}

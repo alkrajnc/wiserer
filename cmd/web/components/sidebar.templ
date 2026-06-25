@@ -3,17 +3,15 @@ package web
 import "alkrajnc/wiserer/internal/service"
 import "time"
 
-templ Sidebar() {
+templ Sidebar(program string) {
 	<div class="sidebar" id="sidebar" data-collapsed="false">
 		@Calendar(time.Now())
 		<div>
 			<h2>Programs</h2>
 			<div class="sidebar-list">
-				<div class="surface" data-active="true">
-					<span>RIT 1 VS</span>
-				</div>
-				<div c-type="dialog">
-					<div class="surface add" c-role="dialog-trigger">
+				<div id="programs-list"></div>
+				<div id="program-select-dialog" c-type="dialog">
+					<div class="surface add" id="program-add-button" c-role="dialog-trigger">
 						<i data-lucide="plus"></i>
 						<span>Add Program</span>
 					</div>
@@ -23,10 +21,10 @@ templ Sidebar() {
 						</h3>
 						<p class="dialog-description">Add a program to select</p>
 						<ul class="program-list">
-							for key, value := range service.Programs {
-								<li class="program-item">
-									<span>{ key }</span>
-									<span>{ value.Name }</span>
+							for _, program := range service.Programs {
+								<li class="program-item" data-value={ program.Slug }>
+									<span>{ program.Slug }</span>
+									<span>{ program.Name }</span>
 								</li>
 							}
 						</ul>
@@ -34,18 +32,18 @@ templ Sidebar() {
 				</div>
 			</div>
 		</div>
-		<div>
-			<h2>Groups</h2>
-			<div class="sidebar-list">
-				<div class="surface" data-active="true">
-					<span>VP2</span>
-				</div>
-				<div class="surface add">
-					<i data-lucide="plus"></i>
-					<span>Add Group</span>
-				</div>
-			</div>
-		</div>
+		//<div>
+		//	<h2>Groups</h2>
+		//	<div class="sidebar-list">
+		//		<div class="surface" data-active="true">
+		//			<span>VP2</span>
+		//		</div>
+		//		<div class="surface add">
+		//			<i data-lucide="plus"></i>
+		//			<span>Add Group</span>
+		//		</div>
+		//	</div>
+		//</div>
 		<div>
 			<div c-type="dropdown" c-data='{"position": "top", "alignment": "left"}'>
 				<button class="button" c-role="dropdown-trigger" data-size="icon" data-variant="ghost">

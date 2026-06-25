@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -22,9 +23,21 @@ func NewWebHandler(logger *zap.Logger, service service.TimetableService, cfg *co
 	return &WebHandler{Logger: logger, Service: service, Config: cfg}
 }
 func (h *WebHandler) RegisterRoutes(r chi.Router) {
+	r.Route("/", func(r chi.Router) {
+		r.Get("/", h.RedirectRoute)
+	})
 	r.Route("/timetable", func(r chi.Router) {
 		r.Get("/week/{week}", h.BaseRoute)
 	})
+}
+
+func (h *WebHandler) RedirectRoute(w http.ResponseWriter, r *http.Request) {
+
+	now := time.Now()
+
+	_, week := now.ISOWeek()
+
+	http.Redirect(w, r, "/timetable/week/"+strconv.Itoa(week), http.StatusPermanentRedirect)
 }
 
 func (h *WebHandler) BaseRoute(w http.ResponseWriter, r *http.Request) {
@@ -41,16 +54,41 @@ func (h *WebHandler) BaseRoute(w http.ResponseWriter, r *http.Request) {
 
 	program := r.URL.Query().Get("program")
 
-	fmt.Println(program)
+	if len(program) == 0 {
+		component := EmptyTimetableState()
+		err := component.Render(r.Context(), w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			h.Logger.Error(fmt.Sprintf("Error rendering in BaseRoute handler: %e", err))
+		}
+		return
+	}
+
+	program = strings.ReplaceAll(program, "-", " ")
+
+	var validProgramSlug bool = false
+	for _, v := range service.Programs {
+		if program == v.Slug {
+			validProgramSlug = true
+		}
+	}
+
+	if !validProgramSlug {
+		component := EmptyTimetableState()
+		err := component.Render(r.Context(), w)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.Logger.Error(fmt.Sprintf("Error rendering in BaseRoute handler: %e", err))
+		return
+	}
 
 	timetable, err := h.Service.ParseTimetable("/home/aljaz/Documents/wiserer/timetable_610441721.xlsx")
 
 	data := timetable.FilterByWeek(week)
 
-	component := Timetable(week, service.Timetable{LastChange: time.Now(), Entries: data.Entries})
+	component := Timetable(week, service.Timetable{LastChange: time.Now(), Entries: data.Entries}, program)
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		h.Logger.Error(fmt.Sprintf("Error rendering in HelloWebHandler: %e", err))
+		h.Logger.Error(fmt.Sprintf("Error rendering in BaseRoute handler: %e", err))
 	}
 }
