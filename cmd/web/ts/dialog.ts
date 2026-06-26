@@ -26,7 +26,6 @@ function getDialogContent(dialog: HTMLElement): HTMLElement | null {
 function closeDialog(modal: HTMLElement, modalBackdrop: HTMLElement) {
   modal.remove();
   modalBackdrop.remove();
-  //focusGuard.close();
 }
 
 function buildDialog(dialog: HTMLElement) {

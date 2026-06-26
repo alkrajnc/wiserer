@@ -62,8 +62,8 @@ templ Timetable(week int, timetable service.Timetable, program string) {
 				</div>
 				<div class="week-navigation-container">
 					{{
-						nextWeekLink := "/timetable/week/" + strconv.Itoa(week+1)
-						prevWeekLink := "/timetable/week/" + strconv.Itoa(week-1)
+						nextWeekLink := "/timetable/week/" + strconv.Itoa(week+1) + "?program=" + program
+						prevWeekLink := "/timetable/week/" + strconv.Itoa(week-1) + "?program=" + program
 					}}
 					<a href={ prevWeekLink }>
 						<button aria-label="Previous Week" c-type="tooltip" c-data='{"content": "Previous Week <kbd>CTRL</kbd> <kbd>←</kbd>", "position": "top"}' data-variant="ghost" aria-describedby="tooltip_f07a8d" class="button" id="prev-week-button">

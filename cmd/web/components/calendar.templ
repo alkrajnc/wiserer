@@ -1,6 +1,7 @@
 package web
 
 import "time"
+import "fmt"
 
 func DaysInMonth(t time.Time) int {
 	firstOfNextMonth := time.Date(
@@ -20,7 +21,13 @@ type CalendarDay struct {
 	IsCurrentMonth bool
 }
 
-templ Calendar(reference time.Time) {
+func IsSameDay(a, b time.Time) bool {
+	y1, m1, d1 := a.Date()
+	y2, m2, d2 := b.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
+}
+
+templ Calendar(reference time.Time, program string) {
 	{{ weekdays := []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"} }}
 	{{
 		var days []CalendarDay
@@ -42,7 +49,7 @@ templ Calendar(reference time.Time) {
 			firstDay = firstDay.AddDate(0, 0, 1)
 		}
 
-		nextMonthFirstDay := firstDay.AddDate(0, 1, 0)
+		nextMonthFirstDay := firstDay
 
 		for _ = range (7 * 6) - len(days) {
 			days = append(days, CalendarDay{Day: nextMonthFirstDay, IsCurrentMonth: false})
@@ -66,7 +73,28 @@ templ Calendar(reference time.Time) {
 				<div class="calendar-weekday">{ weekday[:2] }</div>
 			}
 			for _, day := range days {
-				<div data-current-month={ day.IsCurrentMonth }>{ day.Day.Day() }</div>
+				{{
+					_, week := day.Day.ISOWeek()
+					href := fmt.Sprintf("/timetable/week/%d?program=%s", week, program)
+					today := IsSameDay(day.Day, time.Now())
+				}}
+				<a class="day" href={ href } data-today={ today }>
+					<div data-current-month={ day.IsCurrentMonth } data-date={ day.Day.Format("02-01-2006") }>{ day.Day.Day() }</div>
+				</a>
+			}
+			{{
+				now := time.Now().Day()
+				idx := 0
+				for i, v := range days {
+					if v.Day.Day() == now {
+						idx = i
+					}
+				}
+				rowOffset := 38.0
+				top := fmt.Sprintf("top: %fpx;", float64(int(idx)%7-1)*rowOffset)
+			}}
+			if reference.Month() == time.Now().Month() {
+				<div class="calendar-week" style={ top }></div>
 			}
 		</div>
 	</div>
