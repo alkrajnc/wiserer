@@ -5,7 +5,7 @@ import "time"
 
 templ Sidebar(program string) {
 	<div class="sidebar" id="sidebar" data-collapsed="false">
-		@Calendar(time.Now())
+		@Calendar(time.Now(), program)
 		<div>
 			<h2>Programs</h2>
 			<div class="sidebar-list">

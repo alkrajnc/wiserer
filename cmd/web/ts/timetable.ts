@@ -1,4 +1,3 @@
-import { attachTooltip } from "./components";
 import focusGuard from "./focus-guard";
 
 const nextWeekButton = document.getElementById("next-week-button")!;
